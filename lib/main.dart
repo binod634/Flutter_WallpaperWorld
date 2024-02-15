@@ -39,63 +39,33 @@ class SecondFullCheck extends State<AppState> {
     }
   }
 
+  void directionalSwipe(DismissDirection direction) {
+    if (direction == DismissDirection.startToEnd ||
+        direction == DismissDirection.endToStart) {
+      addNewImage();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: Stack(
           children: [
-            const Center(
-                child: SizedBox(
-              width: 50,
-              height: 50,
-              child: CircularProgressIndicator(),
-            )),
+            Dismissible(
+                key: const Key("some"),
+                direction: DismissDirection.horizontal,
+                onDismissed: directionalSwipe,
+                child: const SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: CircularProgressIndicator(),
+                )),
             for (var i = 9; i > -1; i--)
               SizedBox(
                 height: double.infinity,
                 child: listImage.elementAt(index + i),
               ),
-            // SizedBox(
-            //   height: double.infinity,
-            //   child: listImage.elementAt(index + 9),
-            // ),
-            // SizedBox(
-            //   height: double.infinity,
-            //   child: listImage.elementAt(index + 8),
-            // ),
-            // SizedBox(
-            //   height: double.infinity,
-            //   child: listImage.elementAt(index + 7),
-            // ),
-            // SizedBox(
-            //   height: double.infinity,
-            //   child: listImage.elementAt(index + 6),
-            // ),
-            // SizedBox(
-            //   height: double.infinity,
-            //   child: listImage.elementAt(index + 5),
-            // ),
-            // SizedBox(
-            //   height: double.infinity,
-            //   child: listImage.elementAt(index + 4),
-            // ),
-            // SizedBox(
-            //   height: double.infinity,
-            //   child: listImage.elementAt(index + 3),
-            // ),
-            // SizedBox(
-            //   height: double.infinity,
-            //   child: listImage.elementAt(index + 2),
-            // ),
-            // SizedBox(
-            //   height: double.infinity,
-            //   child: listImage.elementAt(index + 1),
-            // ),
-            // SizedBox(
-            //   height: double.infinity,
-            //   child: listImage.elementAt(index),
-            // ),
           ],
         ),
       ),
