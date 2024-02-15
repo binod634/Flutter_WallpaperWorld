@@ -45,46 +45,57 @@ class SecondFullCheck extends State<AppState> {
       body: Center(
         child: Stack(
           children: [
-            SizedBox(
-              height: double.infinity,
-              child: listImage.elementAt(index + 9),
-            ),
-            SizedBox(
-              height: double.infinity,
-              child: listImage.elementAt(index + 8),
-            ),
-            SizedBox(
-              height: double.infinity,
-              child: listImage.elementAt(index + 7),
-            ),
-            SizedBox(
-              height: double.infinity,
-              child: listImage.elementAt(index + 6),
-            ),
-            SizedBox(
-              height: double.infinity,
-              child: listImage.elementAt(index + 5),
-            ),
-            SizedBox(
-              height: double.infinity,
-              child: listImage.elementAt(index + 4),
-            ),
-            SizedBox(
-              height: double.infinity,
-              child: listImage.elementAt(index + 3),
-            ),
-            SizedBox(
-              height: double.infinity,
-              child: listImage.elementAt(index + 2),
-            ),
-            SizedBox(
-              height: double.infinity,
-              child: listImage.elementAt(index + 1),
-            ),
-            SizedBox(
-              height: double.infinity,
-              child: listImage.elementAt(index),
-            ),
+            const Center(
+                child: SizedBox(
+              width: 50,
+              height: 50,
+              child: CircularProgressIndicator(),
+            )),
+            for (var i = 9; i > -1; i--)
+              SizedBox(
+                height: double.infinity,
+                child: listImage.elementAt(index + i),
+              ),
+            // SizedBox(
+            //   height: double.infinity,
+            //   child: listImage.elementAt(index + 9),
+            // ),
+            // SizedBox(
+            //   height: double.infinity,
+            //   child: listImage.elementAt(index + 8),
+            // ),
+            // SizedBox(
+            //   height: double.infinity,
+            //   child: listImage.elementAt(index + 7),
+            // ),
+            // SizedBox(
+            //   height: double.infinity,
+            //   child: listImage.elementAt(index + 6),
+            // ),
+            // SizedBox(
+            //   height: double.infinity,
+            //   child: listImage.elementAt(index + 5),
+            // ),
+            // SizedBox(
+            //   height: double.infinity,
+            //   child: listImage.elementAt(index + 4),
+            // ),
+            // SizedBox(
+            //   height: double.infinity,
+            //   child: listImage.elementAt(index + 3),
+            // ),
+            // SizedBox(
+            //   height: double.infinity,
+            //   child: listImage.elementAt(index + 2),
+            // ),
+            // SizedBox(
+            //   height: double.infinity,
+            //   child: listImage.elementAt(index + 1),
+            // ),
+            // SizedBox(
+            //   height: double.infinity,
+            //   child: listImage.elementAt(index),
+            // ),
           ],
         ),
       ),
