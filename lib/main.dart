@@ -49,18 +49,18 @@ class SecondFullCheck extends State<AppState> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
+      body: Dismissible(
+        key: const Key("some"),
+        direction: DismissDirection.horizontal,
+        onDismissed: directionalSwipe,
         child: Stack(
           children: [
-            Dismissible(
-                key: const Key("some"),
-                direction: DismissDirection.horizontal,
-                onDismissed: directionalSwipe,
-                child: const SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: CircularProgressIndicator(),
-                )),
+            const Center(
+                child: SizedBox(
+              width: 50,
+              height: 50,
+              child: CircularProgressIndicator(),
+            )),
             for (var i = 9; i > -1; i--)
               SizedBox(
                 height: double.infinity,
