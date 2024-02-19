@@ -28,9 +28,9 @@ class SecondFullCheck extends State<AppState> {
   final imageUrl = "https://picsum.photos/1080/1920/";
   int index = 0;
 
-  List<String> listImage = List.empty(growable: true);
+  List<Uri> listImage = List.empty(growable: true);
   Future<void> addNewImage() async {
-    listImage.add("$imageUrl?nonsense=$index");
+    listImage.add(Uri.parse("$imageUrl?nonsense=$index"));
     setState(() {
       index++;
     });
@@ -38,7 +38,7 @@ class SecondFullCheck extends State<AppState> {
 
   Future<void> createImageBuffer() async {
     for (var num in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
-      listImage.add("$imageUrl?nonsenseBuff=$num");
+      listImage.add(Uri.parse("$imageUrl?nonsenseBuff=$num"));
     }
   }
 
@@ -52,7 +52,7 @@ class SecondFullCheck extends State<AppState> {
   void setWallpaper() async {
     try {
       await AsyncWallpaper.setWallpaper(
-          url: listImage.elementAt(index), // last image
+          url: listImage.elementAt(index).toString(), // last image
           wallpaperLocation: AsyncWallpaper.BOTH_SCREENS,
           goToHome: true);
     } on PlatformException {
@@ -80,17 +80,35 @@ class SecondFullCheck extends State<AppState> {
                 }),
                 child: SizedBox(
                   height: double.infinity,
-                  child: Image.network(listImage.elementAt(index + i),
-                      fit: BoxFit.fitHeight),
+                  child: Image.network(
+                    listImage.elementAt(index + i).toString(),
+                    fit: BoxFit.fill,
+                    filterQuality: FilterQuality.high,
+                  ),
                 ),
               ),
+
+            // TODO: remove this.
+            Visibility(
+              visible: false,
+              child: Center(
+                child: Container(
+                  color: Colors.white,
+                  alignment: Alignment.center,
+                  height: 400,
+                  width: double.infinity,
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  child: const Text("data"),
+                ),
+              ),
+            )
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromARGB(64, 255, 255, 255),
         onPressed: setWallpaper,
-        child: const Icon(Icons.photo),
+        child: const Icon(Icons.wallpaper),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
