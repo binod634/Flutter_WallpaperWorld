@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:async_wallpaper/async_wallpaper.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const MainApp());
@@ -22,12 +24,13 @@ class AppState extends StatefulWidget {
 }
 
 class SecondFullCheck extends State<AppState> {
+  final int bufferSize = 10;
   final imageUrl = "https://picsum.photos/1080/1920/";
   int index = 0;
 
-  List<Image> listImage = List.empty(growable: true);
+  List<String> listImage = List.empty(growable: true);
   Future<void> addNewImage() async {
-    listImage.add(wallimage("$imageUrl?nonsense=$index"));
+    listImage.add("$imageUrl?nonsense=$index");
     setState(() {
       index++;
     });
@@ -35,7 +38,7 @@ class SecondFullCheck extends State<AppState> {
 
   Future<void> createImageBuffer() async {
     for (var num in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
-      listImage.add(wallimage("$imageUrl?nonsenseBuff=$num"));
+      listImage.add("$imageUrl?nonsenseBuff=$num");
     }
   }
 
@@ -46,13 +49,21 @@ class SecondFullCheck extends State<AppState> {
     }
   }
 
+  void setWallpaper() async {
+    try {
+      await AsyncWallpaper.setWallpaper(
+          url: listImage.elementAt(index), // last image
+          wallpaperLocation: AsyncWallpaper.BOTH_SCREENS,
+          goToHome: true);
+    } on PlatformException {
+      return;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Dismissible(
-        key: const Key("some"),
-        direction: DismissDirection.horizontal,
-        onDismissed: directionalSwipe,
+      body: Center(
         child: Stack(
           children: [
             const Center(
@@ -61,18 +72,25 @@ class SecondFullCheck extends State<AppState> {
               height: 50,
               child: CircularProgressIndicator(),
             )),
-            for (var i = 9; i > -1; i--)
-              SizedBox(
-                height: double.infinity,
-                child: listImage.elementAt(index + i),
+            for (var i = 9; i >= 0; i--)
+              Dismissible(
+                key: Key((index + i).toString()),
+                onDismissed: (DismissDirection e) => setState(() {
+                  addNewImage();
+                }),
+                child: SizedBox(
+                  height: double.infinity,
+                  child: Image.network(listImage.elementAt(index + i),
+                      fit: BoxFit.fitHeight),
+                ),
               ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromARGB(64, 255, 255, 255),
-        onPressed: addNewImage,
-        child: const Icon(Icons.replay_outlined),
+        onPressed: setWallpaper,
+        child: const Icon(Icons.photo),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
