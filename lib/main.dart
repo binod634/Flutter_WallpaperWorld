@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:async_wallpaper/async_wallpaper.dart';
 import 'package:flutter/services.dart';
@@ -25,20 +27,24 @@ class AppState extends StatefulWidget {
 
 class SecondFullCheck extends State<AppState> {
   final int bufferSize = 10;
-  final imageUrl = "https://picsum.photos/1080/1920/";
+  bool wallpaperWaiting = false;
+  final imageUrl1 = "https://picsum.photos/seed/";
+  final imageResolution = "/1080/1920/";
+  int got = Random().nextInt(9999999).toInt();
   int index = 0;
 
   List<Uri> listImage = List.empty(growable: true);
   Future<void> addNewImage() async {
-    listImage.add(Uri.parse("$imageUrl?nonsense=$index"));
+    listImage.add(Uri.parse("$imageUrl1${got++}$imageResolution"));
     setState(() {
       index++;
     });
   }
 
   Future<void> createImageBuffer() async {
+    // ignore: unused_local_variable
     for (var num in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
-      listImage.add(Uri.parse("$imageUrl?nonsenseBuff=$num"));
+      listImage.add(Uri.parse("$imageUrl1${got++}$imageResolution"));
     }
   }
 
@@ -50,13 +56,17 @@ class SecondFullCheck extends State<AppState> {
   }
 
   void setWallpaper() async {
-    try {
-      await AsyncWallpaper.setWallpaper(
-          url: listImage.elementAt(index).toString(), // last image
-          wallpaperLocation: AsyncWallpaper.BOTH_SCREENS,
-          goToHome: true);
-    } on PlatformException {
-      return;
+    if (!wallpaperWaiting) {
+      try {
+        wallpaperWaiting = true;
+        await AsyncWallpaper.setWallpaper(
+            url: listImage.elementAt(index).toString(), // last image
+            wallpaperLocation: AsyncWallpaper.BOTH_SCREENS,
+            goToHome: false);
+        wallpaperWaiting = false;
+      } on PlatformException {
+        return;
+      }
     }
   }
 
@@ -82,8 +92,8 @@ class SecondFullCheck extends State<AppState> {
                   height: double.infinity,
                   child: Image.network(
                     listImage.elementAt(index + i).toString(),
-                    fit: BoxFit.fill,
-                    filterQuality: FilterQuality.high,
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.none,
                   ),
                 ),
               ),
