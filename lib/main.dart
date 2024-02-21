@@ -123,7 +123,7 @@ class SecondFullCheck extends State<AppState> {
               ),
             ),
 
-            // TODO: working...
+            // Alert dialog to confirm
             Visibility(
               visible: showConfirmDialog,
               child: Container(
@@ -148,6 +148,7 @@ class SecondFullCheck extends State<AppState> {
                   )),
             ),
 
+            // Processing widget when setting up wallpaper.
             Visibility(
                 visible: wallpaperWaiting,
                 child: const Center(
