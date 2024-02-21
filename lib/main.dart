@@ -64,6 +64,7 @@ class SecondFullCheck extends State<AppState> {
     if (!wallpaperWaiting) {
       try {
         setState(() {
+          showConfirmDialog = false;
           wallpaperWaiting = true;
         });
         await AsyncWallpaper.setWallpaper(
@@ -91,7 +92,7 @@ class SecondFullCheck extends State<AppState> {
               height: 50,
               child: CircularProgressIndicator(),
             )),
-            for (var i = 9; i >= 0; i--)
+            for (var i in Iterable.generate(bufferSize))
               Dismissible(
                 key: Key((index + i).toString()),
                 onDismissed: (DismissDirection e) => setState(() {
@@ -100,7 +101,7 @@ class SecondFullCheck extends State<AppState> {
                 child: SizedBox(
                   height: double.infinity,
                   child: Image.network(
-                    listImage.elementAt(index + i).toString(),
+                    listImage.elementAt(i + index).toString(),
                     fit: BoxFit.cover,
                     filterQuality: FilterQuality.none,
                   ),
@@ -128,11 +129,21 @@ class SecondFullCheck extends State<AppState> {
               child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: const AlertDialog(
-                    title: Text("Set this as Wallpaper ?"),
+                  child: AlertDialog(
+                    title: const Text(
+                      "Set this as Wallpaper ?",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
                     actions: [
-                      FilledButton(onPressed: null, child: Text("Confirm")),
-                      FilledButton(onPressed: null, child: Text("Cancel"))
+                      TextButton(
+                          onPressed: setWallpaper,
+                          child: const Text("Confirm")),
+                      TextButton(
+                          onPressed: () => setState(() {
+                                showConfirmDialog = false;
+                              }),
+                          child: const Text("Cancel"))
                     ],
                   )),
             ),
@@ -158,7 +169,11 @@ class SecondFullCheck extends State<AppState> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromARGB(64, 255, 255, 255),
-        onPressed: setWallpaper,
+        onPressed: () => {
+          setState(() {
+            showConfirmDialog = true;
+          })
+        },
         child: const Icon(Icons.wallpaper),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
