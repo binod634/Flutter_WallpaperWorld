@@ -48,7 +48,7 @@ class SecondFullCheck extends State<AppState> {
 
   Future<void> createImageBuffer() async {
     // ignore: unused_local_variable
-    for (var num in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+    for (var num in Iterable.generate(bufferSize)) {
       addToImageList();
     }
   }
