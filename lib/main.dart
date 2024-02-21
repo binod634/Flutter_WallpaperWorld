@@ -92,7 +92,7 @@ class SecondFullCheck extends State<AppState> {
               height: 50,
               child: CircularProgressIndicator(),
             )),
-            for (var i in Iterable.generate(bufferSize))
+            for (var i = 9; i >= 0; i--)
               Dismissible(
                 key: Key((index + i).toString()),
                 onDismissed: (DismissDirection e) => setState(() {
