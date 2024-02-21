@@ -27,24 +27,29 @@ class AppState extends StatefulWidget {
 
 class SecondFullCheck extends State<AppState> {
   final int bufferSize = 10;
+  bool showConfirmDialog = false;
   bool wallpaperWaiting = false;
+  List<Uri> listImage = List.empty(growable: true);
   final imageUrl1 = "https://picsum.photos/seed/";
   final imageResolution = "/1080/1920/";
-  int got = Random().nextInt(9999999).toInt();
+  int got = Random().nextInt(1000).toInt();
   int index = 0;
 
-  List<Uri> listImage = List.empty(growable: true);
   Future<void> addNewImage() async {
-    listImage.add(Uri.parse("$imageUrl1${got++}$imageResolution"));
+    addToImageList();
     setState(() {
       index++;
     });
   }
 
+  void addToImageList() {
+    listImage.add(Uri.parse("$imageUrl1${got++}$imageResolution"));
+  }
+
   Future<void> createImageBuffer() async {
     // ignore: unused_local_variable
     for (var num in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
-      listImage.add(Uri.parse("$imageUrl1${got++}$imageResolution"));
+      addToImageList();
     }
   }
 
@@ -58,12 +63,16 @@ class SecondFullCheck extends State<AppState> {
   void setWallpaper() async {
     if (!wallpaperWaiting) {
       try {
-        wallpaperWaiting = true;
+        setState(() {
+          wallpaperWaiting = true;
+        });
         await AsyncWallpaper.setWallpaper(
             url: listImage.elementAt(index).toString(), // last image
             wallpaperLocation: AsyncWallpaper.BOTH_SCREENS,
             goToHome: false);
-        wallpaperWaiting = false;
+        setState(() {
+          wallpaperWaiting = false;
+        });
       } on PlatformException {
         return;
       }
@@ -103,7 +112,7 @@ class SecondFullCheck extends State<AppState> {
               visible: false,
               child: Center(
                 child: Container(
-                  color: Colors.white,
+                  color: Colors.lightBlue,
                   alignment: Alignment.center,
                   height: 400,
                   width: double.infinity,
@@ -111,7 +120,39 @@ class SecondFullCheck extends State<AppState> {
                   child: const Text("data"),
                 ),
               ),
-            )
+            ),
+
+            // TODO: working...
+            Visibility(
+              visible: showConfirmDialog,
+              child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  child: const AlertDialog(
+                    title: Text("Set this as Wallpaper ?"),
+                    actions: [
+                      FilledButton(onPressed: null, child: Text("Confirm")),
+                      FilledButton(onPressed: null, child: Text("Cancel"))
+                    ],
+                  )),
+            ),
+
+            Visibility(
+                visible: wallpaperWaiting,
+                child: const Center(
+                    child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      "Setting up wallpaper...",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    )
+                  ],
+                ))),
           ],
         ),
       ),
