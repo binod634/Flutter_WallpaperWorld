@@ -1,8 +1,8 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:async_wallpaper/async_wallpaper.dart';
 import 'package:flutter/services.dart';
+import 'package:animated_splash_screen/animated_splash_screen.dart';
 
 void main() {
   runApp(const MainApp());
@@ -14,7 +14,13 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(home: AppState());
+    return MaterialApp(
+        home: AnimatedSplashScreen(
+      splash: "src/screenshots/new.jpeg",
+      splashIconSize: 256, // Large size.
+      backgroundColor: Colors.white,
+      nextScreen: const AppState(),
+    ));
   }
 }
 
@@ -67,9 +73,10 @@ class SecondFullCheck extends State<AppState> {
           showConfirmDialog = false;
           wallpaperWaiting = true;
         });
+        // Saved with this method.
         await AsyncWallpaper.setWallpaper(
             url: listImage.elementAt(index).toString(), // last image
-            wallpaperLocation: AsyncWallpaper.BOTH_SCREENS,
+            wallpaperLocation: AsyncWallpaper.HOME_SCREEN,
             goToHome: false);
         setState(() {
           wallpaperWaiting = false;
@@ -127,25 +134,28 @@ class SecondFullCheck extends State<AppState> {
             Visibility(
               visible: showConfirmDialog,
               child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: AlertDialog(
-                    title: const Text(
-                      "Set this as Wallpaper ?",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 04, vertical: 04),
+                child: AlertDialog(
+                  title: const Text(
+                    "Set it as wallpaper ?",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  icon: Image.network(listImage.elementAt(index).toString()),
+                  actions: [
+                    TextButton(
+                      onPressed: setWallpaper,
+                      child: const Text("Confirm"),
                     ),
-                    actions: [
-                      TextButton(
-                          onPressed: setWallpaper,
-                          child: const Text("Confirm")),
-                      TextButton(
-                          onPressed: () => setState(() {
-                                showConfirmDialog = false;
-                              }),
-                          child: const Text("Cancel"))
-                    ],
-                  )),
+                    TextButton(
+                      onPressed: () => setState(() {
+                        showConfirmDialog = false;
+                      }),
+                      child: const Text("Cancel"),
+                    ),
+                  ],
+                ),
+              ),
             ),
 
             // Processing widget when setting up wallpaper.
