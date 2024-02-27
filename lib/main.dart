@@ -101,7 +101,7 @@ class SecondFullCheck extends State<AppState> {
             )),
             for (var i = 9; i >= 0; i--)
               Dismissible(
-                key: Key((index + i).toString()),
+                key: Key(listImage.elementAt(index + i).toString()),
                 onDismissed: (DismissDirection e) => setState(() {
                   addNewImage();
                 }),
