@@ -6,13 +6,17 @@ import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/* Don't show that shit working introduction screen */
+bool showIntroScreen = false;
+
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences shred = await SharedPreferences.getInstance();
   bool isFirstTime = shred.getBool('isFirstTime') ?? true;
 
-  if (isFirstTime) {
+  if (isFirstTime && showIntroScreen) {
     runApp(const FirstTimeShow());
-    WidgetsFlutterBinding.ensureInitialized();
+    // WidgetsFlutterBinding.ensureInitialized();
     shred.setBool('isFirstTime', false);
   } else {
     runApp(const MainApp());
