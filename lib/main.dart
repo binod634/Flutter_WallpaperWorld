@@ -3,14 +3,85 @@ import 'package:flutter/material.dart';
 import 'package:async_wallpaper/async_wallpaper.dart';
 import 'package:flutter/services.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
+import 'package:introduction_screen/introduction_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MainApp());
+Future<void> main() async {
+  SharedPreferences shred = await SharedPreferences.getInstance();
+  bool isFirstTime = shred.getBool('isFirstTime') ?? true;
+
+  if (isFirstTime) {
+    runApp(const FirstTimeShow());
+    WidgetsFlutterBinding.ensureInitialized();
+    shred.setBool('isFirstTime', false);
+  } else {
+    runApp(const MainApp());
+  }
+}
+
+class FirstTimeShow extends StatelessWidget {
+  const FirstTimeShow({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: FirstTimeState(),
+    );
+  }
+}
+
+class FirstTimeState extends StatefulWidget {
+  const FirstTimeState({super.key});
+
+  @override
+  State<StatefulWidget> createState() => FirstTimeStateImpl();
+}
+
+class FirstTimeStateImpl extends State<FirstTimeState> {
+  final introPages = <PageViewModel>[
+    PageViewModel(
+        title: "Hello hi",
+        body: "Hello body 1",
+        image: const Center(
+          child: Icon(Icons.edit),
+        )),
+    PageViewModel(
+        title: "Hello hi",
+        body: "Hello body 2",
+        image: const Center(
+          child: Icon(Icons.edit),
+        )),
+    PageViewModel(
+        title: "Hello hi",
+        body: "Hello body 3",
+        image: const Center(
+          child: Icon(Icons.edit),
+        )),
+    PageViewModel(
+        title: "Hello hi",
+        body: "Hello body 4",
+        image: const Center(
+          child: Icon(Icons.edit),
+        ))
+  ];
+  @override
+  Widget build(BuildContext context) {
+    return IntroductionScreen(
+      pages: introPages,
+      showNextButton: false,
+      done: const Text("Done"),
+      onDone: () {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => const MainApp()));
+      },
+    );
+  }
 }
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
   final int nonsense = 1;
+  final firstTime = false;
 
   @override
   Widget build(BuildContext context) {
@@ -114,21 +185,6 @@ class SecondFullCheck extends State<AppState> {
                   ),
                 ),
               ),
-
-            // TODO: remove this.
-            Visibility(
-              visible: false,
-              child: Center(
-                child: Container(
-                  color: Colors.lightBlue,
-                  alignment: Alignment.center,
-                  height: 400,
-                  width: double.infinity,
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  child: const Text("data"),
-                ),
-              ),
-            ),
 
             // Alert dialog to confirm
             Visibility(
