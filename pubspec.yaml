@@ -25,3 +25,4 @@ flutter:
   assets:
     - src/screenshots/flowerblack.jpg
     - src/screenshots/new.jpeg
+    - src/screenshots/fullsize.png

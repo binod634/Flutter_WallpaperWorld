@@ -7,16 +7,17 @@ import 'package:introduction_screen/introduction_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /* Don't show that shit working introduction screen */
-bool showIntroScreen = false;
+bool ignoreIntroScreen = true;
+bool forceShowIntroScreen = false;
+bool isFirstTime = true;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences shred = await SharedPreferences.getInstance();
-  bool isFirstTime = shred.getBool('isFirstTime') ?? true;
+  final isFirstTime = shred.getBool('isFirstTime') ?? true;
 
-  if (isFirstTime && showIntroScreen) {
+  if ((isFirstTime || forceShowIntroScreen) && !ignoreIntroScreen) {
     runApp(const FirstTimeShow());
-    // WidgetsFlutterBinding.ensureInitialized();
     shred.setBool('isFirstTime', false);
   } else {
     runApp(const MainApp());
@@ -28,8 +29,12 @@ class FirstTimeShow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: FirstTimeState(),
+    return MaterialApp(
+      home: AnimatedSplashScreen(
+          splash: "src/screenshots/new.jpeg",
+          splashIconSize: 256, // Large size.
+          backgroundColor: Colors.white,
+          nextScreen: const FirstTimeState()),
     );
   }
 }
@@ -46,34 +51,24 @@ class FirstTimeStateImpl extends State<FirstTimeState> {
     PageViewModel(
         title: "Hello hi",
         body: "Hello body 1",
-        image: const Center(
-          child: Icon(Icons.edit),
+        image: Center(
+            child: Image.asset(
+          'src/screenshots/fullsize.png',
+          fit: BoxFit.contain,
         )),
-    PageViewModel(
-        title: "Hello hi",
-        body: "Hello body 2",
-        image: const Center(
-          child: Icon(Icons.edit),
-        )),
-    PageViewModel(
-        title: "Hello hi",
-        body: "Hello body 3",
-        image: const Center(
-          child: Icon(Icons.edit),
-        )),
-    PageViewModel(
-        title: "Hello hi",
-        body: "Hello body 4",
-        image: const Center(
-          child: Icon(Icons.edit),
-        ))
+        decoration: PageDecoration(pageColor: Colors.lightBlue[50])),
+    PageViewModel(body: "Second Screen", title: "New title"),
   ];
   @override
   Widget build(BuildContext context) {
     return IntroductionScreen(
       pages: introPages,
-      showNextButton: false,
-      done: const Text("Done"),
+      showSkipButton: true,
+      skip: const Text("Skip"),
+      showNextButton: true,
+      next: const Text("Next"),
+      done: const Icon(Icons.check),
+      globalBackgroundColor: Colors.lightBlue[50],
       onDone: () {
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => const MainApp()));
@@ -90,12 +85,14 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: AnimatedSplashScreen(
-      splash: "src/screenshots/new.jpeg",
-      splashIconSize: 256, // Large size.
-      backgroundColor: Colors.white,
-      nextScreen: const AppState(),
-    ));
+        home: isFirstTime
+            ? AnimatedSplashScreen(
+                splash: "src/screenshots/new.jpeg",
+                splashIconSize: 256, // Large size.
+                backgroundColor: Colors.white,
+                nextScreen: const AppState(),
+              )
+            : const AppState());
   }
 }
 
@@ -115,11 +112,18 @@ class SecondFullCheck extends State<AppState> {
   final imageResolution = "/1080/1920/";
   int got = Random().nextInt(1000).toInt();
   int index = 0;
+  bool isIteminListRemvoed = false;
 
-  Future<void> addNewImage() async {
+  Future<void> addNewImage(str) async {
     addToImageList();
+    if (listImage.contains(str)) {
+      listImage.removeWhere((element) => element == str);
+      isIteminListRemvoed = true;
+    } else {
+      isIteminListRemvoed = false;
+    }
     setState(() {
-      index++;
+      if (!isIteminListRemvoed) index++;
     });
   }
 
@@ -131,13 +135,6 @@ class SecondFullCheck extends State<AppState> {
     // ignore: unused_local_variable
     for (var num in Iterable.generate(bufferSize)) {
       addToImageList();
-    }
-  }
-
-  void directionalSwipe(DismissDirection direction) {
-    if (direction == DismissDirection.startToEnd ||
-        direction == DismissDirection.endToStart) {
-      addNewImage();
     }
   }
 
@@ -176,14 +173,14 @@ class SecondFullCheck extends State<AppState> {
             )),
             for (var i = 9; i >= 0; i--)
               Dismissible(
-                key: Key(listImage.elementAt(index + i).toString()),
+                key: Key(findImageUri(listImage, index, i)),
                 onDismissed: (DismissDirection e) => setState(() {
-                  addNewImage();
+                  addNewImage(findImageUri(listImage, index, i));
                 }),
                 child: SizedBox(
                   height: double.infinity,
                   child: Image.network(
-                    listImage.elementAt(i + index).toString(),
+                    findImageUri(listImage, index, i),
                     fit: BoxFit.cover,
                     filterQuality: FilterQuality.none,
                   ),
@@ -260,4 +257,8 @@ class SecondFullCheck extends State<AppState> {
 
 Image wallimage(String imageUrl) {
   return Image.network(imageUrl, fit: BoxFit.fitHeight);
+}
+
+String findImageUri(imageist, index, iteration) {
+  return imageist.elementAt(index + iteration).toString();
 }
