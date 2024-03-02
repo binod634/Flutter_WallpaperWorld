@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:async_wallpaper/async_wallpaper.dart';
@@ -5,11 +6,15 @@ import 'package:flutter/services.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
-/* Don't show that shit working introduction screen */
-bool ignoreIntroScreen = true;
-bool forceShowIntroScreen = false;
+/* Don't or Force show that shit working introduction screen */
+bool ignoreIntroScreen = false;
+bool forceShowIntroScreen = true;
 bool isFirstTime = true;
+
+/* Ping test url */
+String pingUrl = "https://www.google.com/";
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +29,7 @@ Future<void> main() async {
   }
 }
 
+// Introduction Page after opening App.
 class FirstTimeShow extends StatelessWidget {
   const FirstTimeShow({super.key});
 
@@ -49,26 +55,53 @@ class FirstTimeState extends StatefulWidget {
 class FirstTimeStateImpl extends State<FirstTimeState> {
   final introPages = <PageViewModel>[
     PageViewModel(
-        title: "Hello hi",
-        body: "Hello body 1",
-        image: Center(
-            child: Image.asset(
-          'src/screenshots/fullsize.png',
-          fit: BoxFit.contain,
-        )),
-        decoration: PageDecoration(pageColor: Colors.lightBlue[50])),
-    PageViewModel(body: "Second Screen", title: "New title"),
+        title: "How to use Wallpaper App ?",
+        image: Image.asset(
+          'assets/teacher.gif',
+          height: 200,
+        ),
+        body:
+            "This introduction page is designed to help you effectively use this application. Hope it helps.",
+        decoration: PageDecoration(pageColor: Colors.lightBlue[100])),
+    PageViewModel(
+        title: "How to use Wallpaper App ?",
+        image: Image.asset(
+          'assets/teacher.gif',
+          height: 200,
+        ),
+        body:
+            "This introduction page is designed to help you effectively use this application. Hope it helps.",
+        decoration: PageDecoration(pageColor: Colors.lightBlue[100])),
+    PageViewModel(
+        title: "How to use Wallpaper App ?",
+        image: Image.asset(
+          'assets/teacher.gif',
+          height: 200,
+        ),
+        body:
+            "This introduction page is designed to help you effectively use this application. Hope it helps.",
+        decoration: PageDecoration(pageColor: Colors.lightBlue[100])),
   ];
   @override
   Widget build(BuildContext context) {
     return IntroductionScreen(
       pages: introPages,
+      dotsDecorator: DotsDecorator(
+        size: const Size.square(10.0),
+        activeSize: const Size(30.0, 10.0),
+        activeColor: Colors.cyanAccent[600],
+        color: Colors.black26,
+        spacing: const EdgeInsets.symmetric(horizontal: 3.0),
+        activeShape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0)),
+      ),
       showSkipButton: true,
       skip: const Text("Skip"),
       showNextButton: true,
       next: const Text("Next"),
       done: const Icon(Icons.check),
-      globalBackgroundColor: Colors.lightBlue[50],
+      globalBackgroundColor: Colors.lightBlue[100],
+      curve: Curves.elasticInOut,
       onDone: () {
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => const MainApp()));
@@ -77,6 +110,7 @@ class FirstTimeStateImpl extends State<FirstTimeState> {
   }
 }
 
+// Wallpaper Page.
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
   final int nonsense = 1;
@@ -85,7 +119,8 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: isFirstTime
+        // TODO: remove 'forceShowIntroScreen' as unnecessary for production.
+        home: isFirstTime && !forceShowIntroScreen
             ? AnimatedSplashScreen(
                 splash: "src/screenshots/new.jpeg",
                 splashIconSize: 256, // Large size.
@@ -110,6 +145,7 @@ class SecondFullCheck extends State<AppState> {
   List<Uri> listImage = List.empty(growable: true);
   final imageUrl1 = "https://picsum.photos/seed/";
   final imageResolution = "/1080/1920/";
+  bool showNetworkIssue = false;
   int got = Random().nextInt(1000).toInt();
   int index = 0;
   bool isIteminListRemvoed = false;
@@ -135,6 +171,16 @@ class SecondFullCheck extends State<AppState> {
     // ignore: unused_local_variable
     for (var num in Iterable.generate(bufferSize)) {
       addToImageList();
+    }
+  }
+
+  Future<void> checkInternetIssueAfterDelay() async {
+    http.Response gotResponse = await http.get(Uri.parse(pingUrl));
+    dev.log("Got response code: ${gotResponse.statusCode}");
+    if (gotResponse.statusCode != 200) {
+      setState(() {
+        showNetworkIssue = true;
+      });
     }
   }
 
@@ -165,11 +211,35 @@ class SecondFullCheck extends State<AppState> {
       body: Center(
         child: Stack(
           children: [
-            const Center(
-                child: SizedBox(
-              width: 50,
-              height: 50,
-              child: CircularProgressIndicator(),
+            Center(
+                child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: showNetworkIssue
+                      ? const Icon(
+                          Icons
+                              .signal_wifi_statusbar_connected_no_internet_4_sharp,
+                          size: 50,
+                        )
+                      : const CircularProgressIndicator(),
+                ),
+                const SizedBox(
+                  height: 25,
+                ),
+                Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Visibility(
+                      visible: showNetworkIssue,
+                      child: const Text(
+                        "Offline status detected.\nKindly verify your internet connection.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ))
+              ],
             )),
             for (var i = 9; i >= 0; i--)
               Dismissible(
@@ -179,11 +249,11 @@ class SecondFullCheck extends State<AppState> {
                 }),
                 child: SizedBox(
                   height: double.infinity,
-                  child: Image.network(
-                    findImageUri(listImage, index, i),
-                    fit: BoxFit.cover,
-                    filterQuality: FilterQuality.none,
-                  ),
+                  child: Image.network(findImageUri(listImage, index, i),
+                      fit: BoxFit.cover, filterQuality: FilterQuality.none,
+                      errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox();
+                  }),
                 ),
               ),
 
@@ -235,15 +305,17 @@ class SecondFullCheck extends State<AppState> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color.fromARGB(64, 255, 255, 255),
-        onPressed: () => {
-          setState(() {
-            showConfirmDialog = true;
-          })
-        },
-        child: const Icon(Icons.wallpaper),
-      ),
+      floatingActionButton: Visibility(
+          visible: !showNetworkIssue,
+          child: FloatingActionButton(
+            backgroundColor: const Color.fromARGB(64, 255, 255, 255),
+            onPressed: () => {
+              setState(() {
+                showConfirmDialog = true;
+              })
+            },
+            child: const Icon(Icons.wallpaper),
+          )),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
@@ -251,6 +323,7 @@ class SecondFullCheck extends State<AppState> {
   @override
   void initState() {
     super.initState();
+    checkInternetIssueAfterDelay();
     createImageBuffer();
   }
 }
