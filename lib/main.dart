@@ -174,13 +174,21 @@ class SecondFullCheck extends State<AppState> {
     }
   }
 
+  void setNetworkIssue() {
+    setState(() {
+      showNetworkIssue = true;
+    });
+  }
+
   Future<void> checkInternetIssueAfterDelay() async {
-    http.Response gotResponse = await http.get(Uri.parse(pingUrl));
-    dev.log("Got response code: ${gotResponse.statusCode}");
-    if (gotResponse.statusCode != 200) {
-      setState(() {
-        showNetworkIssue = true;
-      });
+    try {
+      http.Response gotResponse = await http.get(Uri.parse(pingUrl));
+      dev.log("Got response code: ${gotResponse.statusCode}");
+      if (gotResponse.statusCode != 200) {
+        setNetworkIssue();
+      }
+    } catch (e) {
+      setNetworkIssue();
     }
   }
 
