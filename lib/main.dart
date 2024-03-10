@@ -37,9 +37,10 @@ class FirstTimeShow extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: AnimatedSplashScreen(
-          splash: "src/screenshots/new.jpeg",
+          splash: "assets/elephant.png",
           splashIconSize: 256, // Large size.
           backgroundColor: Colors.white,
+          splashTransition: SplashTransition.fadeTransition,
           nextScreen: const FirstTimeState()),
     );
   }
@@ -122,7 +123,7 @@ class MainApp extends StatelessWidget {
         // TODO: remove 'forceShowIntroScreen' as unnecessary for production.
         home: isFirstTime && !forceShowIntroScreen
             ? AnimatedSplashScreen(
-                splash: "src/screenshots/new.jpeg",
+                splash: "assets/elephant.png",
                 splashIconSize: 256, // Large size.
                 backgroundColor: Colors.white,
                 nextScreen: const AppState(),
