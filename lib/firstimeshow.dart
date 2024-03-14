@@ -49,13 +49,12 @@ class FirstTimeStateImpl extends State<FirstTimeState> {
             "You can swipe Left or Right to get new Wallpaper. Swiping from either side does the same. so, feel free to use as you like.",
         decoration: PageDecoration(pageColor: Colors.lightBlue[100])),
     PageViewModel(
-        title: "How to use Wallpaper App ?",
+        title: "How to setup wallpaper",
         image: Image.asset(
           'assets/flutter_03.png',
           height: 200,
         ),
-        body:
-            "This introduction page is designed to help you effectively use this application. Hope it helps.",
+        body: "Click on bottom icon to get a setup wizard and click confirm.",
         decoration: PageDecoration(pageColor: Colors.lightBlue[100])),
   ];
   @override
