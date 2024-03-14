@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:async_wallpaper/async_wallpaper.dart';
 import 'package:flutter/services.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
-import 'package:introduction_screen/introduction_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:wallpaperworld/firstimeshow.dart';
 
 /* Don't or Force show that shit working introduction screen */
 bool ignoreIntroScreen = false;
@@ -26,88 +26,6 @@ Future<void> main() async {
     shred.setBool('isFirstTime', false);
   } else {
     runApp(const MainApp());
-  }
-}
-
-// Introduction Page after opening App.
-class FirstTimeShow extends StatelessWidget {
-  const FirstTimeShow({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: AnimatedSplashScreen(
-          splash: "assets/elephant.png",
-          splashIconSize: 256, // Large size.
-          backgroundColor: Colors.white,
-          splashTransition: SplashTransition.fadeTransition,
-          nextScreen: const FirstTimeState()),
-    );
-  }
-}
-
-class FirstTimeState extends StatefulWidget {
-  const FirstTimeState({super.key});
-
-  @override
-  State<StatefulWidget> createState() => FirstTimeStateImpl();
-}
-
-class FirstTimeStateImpl extends State<FirstTimeState> {
-  final introPages = <PageViewModel>[
-    PageViewModel(
-        title: "How to use Wallpaper App ?",
-        image: Image.asset(
-          'assets/teacher.gif',
-          height: 200,
-        ),
-        body:
-            "This introduction page is designed to help you effectively use this application. Hope it helps.",
-        decoration: PageDecoration(pageColor: Colors.lightBlue[100])),
-    PageViewModel(
-        title: "How to use Wallpaper App ?",
-        image: Image.asset(
-          'assets/teacher.gif',
-          height: 200,
-        ),
-        body:
-            "This introduction page is designed to help you effectively use this application. Hope it helps.",
-        decoration: PageDecoration(pageColor: Colors.lightBlue[100])),
-    PageViewModel(
-        title: "How to use Wallpaper App ?",
-        image: Image.asset(
-          'assets/teacher.gif',
-          height: 200,
-        ),
-        body:
-            "This introduction page is designed to help you effectively use this application. Hope it helps.",
-        decoration: PageDecoration(pageColor: Colors.lightBlue[100])),
-  ];
-  @override
-  Widget build(BuildContext context) {
-    return IntroductionScreen(
-      pages: introPages,
-      dotsDecorator: DotsDecorator(
-        size: const Size.square(10.0),
-        activeSize: const Size(30.0, 10.0),
-        activeColor: Colors.cyanAccent[600],
-        color: Colors.black26,
-        spacing: const EdgeInsets.symmetric(horizontal: 3.0),
-        activeShape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0)),
-      ),
-      showSkipButton: true,
-      skip: const Text("Skip"),
-      showNextButton: true,
-      next: const Text("Next"),
-      done: const Icon(Icons.check),
-      globalBackgroundColor: Colors.lightBlue[100],
-      curve: Curves.elasticInOut,
-      onDone: () {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => const MainApp()));
-      },
-    );
   }
 }
 
@@ -148,20 +66,17 @@ class SecondFullCheck extends State<AppState> {
   final imageResolution = "/1080/1920/";
   bool showNetworkIssue = false;
   int got = Random().nextInt(1000).toInt();
-  int index = 0;
   bool isIteminListRemvoed = false;
 
   Future<void> addNewImage(str) async {
-    addToImageList();
-    if (listImage.contains(str)) {
-      listImage.removeWhere((element) => element == str);
-      isIteminListRemvoed = true;
-    } else {
-      isIteminListRemvoed = false;
+    if (!listImage.contains(Uri.parse(str))) {
+      dev.log("Critic-0: Str to replace isn't in listimage.");
+      dev.log("Str: $str");
+      dev.log("listimage: $listImage");
+      dev.log("got: $got");
     }
-    setState(() {
-      if (!isIteminListRemvoed) index++;
-    });
+    addToImageList();
+    listImage.removeWhere((element) => element.toString() == str);
   }
 
   void addToImageList() {
@@ -184,7 +99,7 @@ class SecondFullCheck extends State<AppState> {
   Future<void> checkInternetIssueAfterDelay() async {
     try {
       http.Response gotResponse = await http.get(Uri.parse(pingUrl));
-      dev.log("Got response code: ${gotResponse.statusCode}");
+      dev.log("Log Got response code: ${gotResponse.statusCode}");
       if (gotResponse.statusCode != 200) {
         setNetworkIssue();
       }
@@ -202,7 +117,7 @@ class SecondFullCheck extends State<AppState> {
         });
         // Saved with this method.
         await AsyncWallpaper.setWallpaper(
-            url: listImage.elementAt(index).toString(), // last image
+            url: listImage.first.toString(), // last image
             wallpaperLocation: AsyncWallpaper.HOME_SCREEN,
             goToHome: false);
         setState(() {
@@ -252,13 +167,13 @@ class SecondFullCheck extends State<AppState> {
             )),
             for (var i = 9; i >= 0; i--)
               Dismissible(
-                key: Key(findImageUri(listImage, index, i)),
+                key: Key(findImageUri(listImage, i)),
                 onDismissed: (DismissDirection e) => setState(() {
-                  addNewImage(findImageUri(listImage, index, i));
+                  addNewImage(findImageUri(listImage, i));
                 }),
                 child: SizedBox(
                   height: double.infinity,
-                  child: Image.network(findImageUri(listImage, index, i),
+                  child: Image.network(findImageUri(listImage, i),
                       fit: BoxFit.cover, filterQuality: FilterQuality.none,
                       errorBuilder: (context, error, stackTrace) {
                     return const SizedBox();
@@ -277,7 +192,7 @@ class SecondFullCheck extends State<AppState> {
                     "Set it as wallpaper ?",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
-                  icon: Image.network(listImage.elementAt(index).toString()),
+                  icon: Image.network(listImage.first.toString()),
                   actions: [
                     TextButton(
                       onPressed: setWallpaper,
@@ -341,6 +256,6 @@ Image wallimage(String imageUrl) {
   return Image.network(imageUrl, fit: BoxFit.fitHeight);
 }
 
-String findImageUri(imageist, index, iteration) {
-  return imageist.elementAt(index + iteration).toString();
+String findImageUri(imageist, iteration) {
+  return imageist.elementAt(iteration).toString();
 }
