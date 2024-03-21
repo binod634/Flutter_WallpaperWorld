@@ -13,7 +13,7 @@ import 'package:path_provider/path_provider.dart';
 
 /* Don't or Force show that shit working introduction screen */
 bool ignoreIntroScreen = false;
-bool forceShowIntroScreen = true;
+bool forceShowIntroScreen = false;
 bool isFirstTime = true;
 
 /* Ping test url */
