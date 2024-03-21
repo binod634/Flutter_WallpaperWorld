@@ -1,4 +1,5 @@
 import 'dart:developer' as dev;
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:async_wallpaper/async_wallpaper.dart';
@@ -6,11 +7,13 @@ import 'package:flutter/services.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:wallpaperworld/expandablefab.dart';
 import 'package:wallpaperworld/firstimeshow.dart';
+import 'package:path_provider/path_provider.dart';
 
 /* Don't or Force show that shit working introduction screen */
 bool ignoreIntroScreen = false;
-bool forceShowIntroScreen = true;
+bool forceShowIntroScreen = false;
 bool isFirstTime = true;
 
 /* Ping test url */
@@ -38,6 +41,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+        debugShowCheckedModeBanner: false,
         // TODO: remove 'forceShowIntroScreen' as unnecessary for production.
         home: isFirstTime && !forceShowIntroScreen
             ? AnimatedSplashScreen(
@@ -67,6 +71,8 @@ class SecondFullCheck extends State<AppState> {
   bool showNetworkIssue = false;
   int got = Random().nextInt(1000).toInt();
   bool isIteminListRemvoed = false;
+  int? setLockOnType;
+  bool showFloatingActionButton = true;
 
   Future<void> addNewImage(str) async {
     if (!listImage.contains(Uri.parse(str))) {
@@ -96,6 +102,13 @@ class SecondFullCheck extends State<AppState> {
     });
   }
 
+  void setLockType(int? lockType) {
+    setState(() {
+      setLockOnType = lockType;
+      showFloatingActionButton = false; // hide floating action button
+    });
+  }
+
   Future<void> checkInternetIssueAfterDelay() async {
     try {
       http.Response gotResponse = await http.get(Uri.parse(pingUrl));
@@ -112,8 +125,9 @@ class SecondFullCheck extends State<AppState> {
     if (!wallpaperWaiting) {
       try {
         setState(() {
-          showConfirmDialog = false;
+          setLockOnType = null;
           wallpaperWaiting = true;
+          showFloatingActionButton = true; // enable floating action button.
         });
         // Saved with this method.
         await AsyncWallpaper.setWallpaper(
@@ -129,119 +143,158 @@ class SecondFullCheck extends State<AppState> {
     }
   }
 
+  void downloadImage() async {
+    try {
+      final imageUrl = listImage.first;
+      final http.Response response = await http.get(imageUrl);
+      var directory = await getDownloadsDirectory();
+      directory ??= await getTemporaryDirectory();
+      final filename = "${directory.path}/${Random().nextInt(1000)}.png";
+      final file = File(filename);
+      await file.writeAsBytes(response.bodyBytes);
+      dev.log("success: $directory");
+    } catch (e) {
+      dev.log("Error:   $e");
+      return;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Stack(
-          children: [
-            Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: showNetworkIssue
-                      ? const Icon(
-                          Icons
-                              .signal_wifi_statusbar_connected_no_internet_4_sharp,
-                          size: 50,
-                        )
-                      : const CircularProgressIndicator(),
-                ),
-                const SizedBox(
-                  height: 25,
-                ),
-                Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Visibility(
-                      visible: showNetworkIssue,
-                      child: const Text(
-                        "Offline status detected.\nKindly verify your internet connection.",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ))
-              ],
-            )),
-            for (var i = 9; i >= 0; i--)
-              Dismissible(
-                key: Key(findImageUri(listImage, i)),
-                onDismissed: (DismissDirection e) => setState(() {
-                  addNewImage(findImageUri(listImage, i));
-                }),
-                child: SizedBox(
-                  height: double.infinity,
-                  child: Image.network(findImageUri(listImage, i),
-                      fit: BoxFit.cover, filterQuality: FilterQuality.none,
-                      errorBuilder: (context, error, stackTrace) {
-                    return const SizedBox();
-                  }),
-                ),
-              ),
-
-            // Alert dialog to confirm
-            Visibility(
-              visible: showConfirmDialog,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 04, vertical: 04),
-                child: AlertDialog(
-                  title: const Text(
-                    "Set it as wallpaper ?",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        body: Center(
+          child: Stack(
+            children: [
+              Center(
+                  child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: showNetworkIssue
+                        ? const Icon(
+                            Icons
+                                .signal_wifi_statusbar_connected_no_internet_4_sharp,
+                            size: 50,
+                          )
+                        : const CircularProgressIndicator(),
                   ),
-                  icon: Image.network(listImage.first.toString()),
-                  actions: [
-                    TextButton(
-                      onPressed: setWallpaper,
-                      child: const Text("Confirm"),
+                  const SizedBox(
+                    height: 25,
+                  ),
+                  Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Visibility(
+                        visible: showNetworkIssue,
+                        child: const Text(
+                          "Offline status detected.\nKindly verify your internet connection.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ))
+                ],
+              )),
+              for (var i = 9; i >= 0; i--)
+                Dismissible(
+                  key: Key(findImageUri(listImage, i)),
+                  onDismissed: (DismissDirection e) => setState(() {
+                    addNewImage(findImageUri(listImage, i));
+                  }),
+                  child: SizedBox(
+                    height: double.infinity,
+                    child: Image.network(findImageUri(listImage, i),
+                        fit: BoxFit.cover, filterQuality: FilterQuality.none,
+                        errorBuilder: (context, error, stackTrace) {
+                      return const SizedBox();
+                    }),
+                  ),
+                ),
+
+              // Alert dialog to confirm
+              Visibility(
+                visible: setLockOnType != null,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 04, vertical: 04),
+                  child: AlertDialog(
+                    title: const Text(
+                      "Set it as wallpaper ?",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                     ),
-                    TextButton(
-                      onPressed: () => setState(() {
-                        showConfirmDialog = false;
-                      }),
-                      child: const Text("Cancel"),
-                    ),
-                  ],
+                    icon: Image.network(listImage.first.toString()),
+                    actions: [
+                      TextButton(
+                        onPressed: () => setWallpaper,
+                        child: const Text("Confirm"),
+                      ),
+                      TextButton(
+                        onPressed: () => setState(() {
+                          setLockOnType = null;
+                          showFloatingActionButton = true;
+                        }),
+                        child: const Text("Cancel"),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            // Processing widget when setting up wallpaper.
-            Visibility(
-                visible: wallpaperWaiting,
-                child: const Center(
-                    child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Text(
-                      "Setting up wallpaper...",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    )
-                  ],
-                ))),
-          ],
+              // Processing widget when setting up wallpaper.
+              Visibility(
+                  visible: wallpaperWaiting,
+                  child: const Center(
+                      child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Text(
+                        "Setting up wallpaper...",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      )
+                    ],
+                  ))),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: Visibility(
-          visible: !showNetworkIssue,
-          child: FloatingActionButton(
-            backgroundColor: const Color.fromARGB(64, 255, 255, 255),
-            onPressed: () => {
-              setState(() {
-                showConfirmDialog = true;
-              })
-            },
-            child: const Icon(Icons.wallpaper),
-          )),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-    );
+        // floatingActionButton: Visibility(
+        //     visible: !showNetworkIssue,
+        //     child: FloatingActionButton(
+        //       backgroundColor: const Color.fromARGB(64, 255, 255, 255),
+        //       onPressed: () => {
+        //         setState(() {
+        //           setLockType(AsyncWallpaper.HOME_SCREEN);
+        //         })
+        //       },
+        //       child: const Icon(Icons.wallpaper),
+        //     )),
+        floatingActionButton: Visibility(
+            visible: showFloatingActionButton,
+            child: ExpandableFabMine(distance: 80, children: [
+              FloatingActionButton(
+                backgroundColor: Colors.white,
+                heroTag: null,
+                onPressed: () => setLockType(AsyncWallpaper.LOCK_SCREEN),
+                child: const Icon(Icons.lock),
+              ),
+              FloatingActionButton(
+                backgroundColor: Colors.white,
+                heroTag: null,
+                onPressed: () => setLockType(AsyncWallpaper.HOME_SCREEN),
+                child: const Icon(Icons.home),
+              ),
+              const FloatingActionButton(
+                backgroundColor: Colors.white,
+                heroTag: null,
+                onPressed: null,
+                child: Icon(Icons.download),
+              ),
+            ])),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat);
   }
 
   @override
