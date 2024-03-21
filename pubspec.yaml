@@ -15,6 +15,7 @@ dependencies:
   flutter_expandable_fab: ^2.0.0
   http: ^1.2.0
   introduction_screen: ^3.1.12
+  path_provider: ^2.1.2
   shared_preferences: ^2.2.2
 
 dev_dependencies:

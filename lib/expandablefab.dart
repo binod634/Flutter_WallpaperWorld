@@ -1,26 +1,29 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-class ExpandableFab extends StatefulWidget {
-  const ExpandableFab({
+class ExpandableFabMine extends StatefulWidget {
+  const ExpandableFabMine({
     super.key,
     this.initialOpen,
     required this.distance,
     required this.children,
+    this.alignment,
   });
 
+  final Alignment? alignment;
   final bool? initialOpen;
   final double distance;
   final List<Widget> children;
 
   @override
-  State<ExpandableFab> createState() => _ExpandableFabState();
+  State<ExpandableFabMine> createState() => _ExpandableFabState();
 }
 
-class _ExpandableFabState extends State<ExpandableFab>
+class _ExpandableFabState extends State<ExpandableFabMine>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _expandAnimation;
+  bool isExpandingAnimationCompleted = false;
   bool _open = false;
 
   @override
@@ -59,8 +62,10 @@ class _ExpandableFabState extends State<ExpandableFab>
   @override
   Widget build(BuildContext context) {
     return SizedBox.expand(
+        child: Padding(
+      padding: const EdgeInsets.only(bottom: 20),
       child: Stack(
-        alignment: Alignment.bottomRight,
+        alignment: widget.alignment ?? Alignment.bottomCenter,
         clipBehavior: Clip.none,
         children: [
           _buildTapToCloseFab(),
@@ -68,7 +73,7 @@ class _ExpandableFabState extends State<ExpandableFab>
           _buildTapToOpenFab(),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildTapToCloseFab() {
@@ -81,15 +86,17 @@ class _ExpandableFabState extends State<ExpandableFab>
           clipBehavior: Clip.antiAlias,
           elevation: 4,
           child: InkWell(
-            onTap: _toggle,
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Icon(
-                Icons.close,
-                color: Theme.of(context).primaryColor,
-              ),
-            ),
-          ),
+              onTap: _toggle,
+              child: Visibility(
+                visible: _open,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Icon(
+                    Icons.close,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+              )),
         ),
       ),
     );
@@ -98,7 +105,7 @@ class _ExpandableFabState extends State<ExpandableFab>
   List<Widget> _buildExpandingActionButtons() {
     final children = <Widget>[];
     final count = widget.children.length;
-    final step = 90.0 / (count - 1);
+    final step = 180.0 / (count - 1);
     for (var i = 0, angleInDegrees = 0.0;
         i < count;
         i++, angleInDegrees += step) {
@@ -118,6 +125,7 @@ class _ExpandableFabState extends State<ExpandableFab>
     return IgnorePointer(
       ignoring: _open,
       child: AnimatedContainer(
+        // alignment: Alignment.bottomCenter,
         transformAlignment: Alignment.center,
         transform: Matrix4.diagonal3Values(
           _open ? 0.7 : 1.0,
@@ -131,8 +139,9 @@ class _ExpandableFabState extends State<ExpandableFab>
           curve: const Interval(0.25, 1.0, curve: Curves.easeInOut),
           duration: const Duration(milliseconds: 250),
           child: FloatingActionButton(
+            backgroundColor: const Color.fromARGB(125, 255, 255, 255),
             onPressed: _toggle,
-            child: const Icon(Icons.create),
+            child: const Icon(Icons.wallpaper),
           ),
         ),
       ),
@@ -163,8 +172,9 @@ class _ExpandingActionButton extends StatelessWidget {
           progress.value * maxDistance,
         );
         return Positioned(
-          right: 4.0 + offset.dx,
-          bottom: 4.0 + offset.dy,
+          right: offset.dx + 150,
+          // right: offset.dx + 150,
+          bottom: offset.dy,
           child: Transform.rotate(
             angle: (1.0 - progress.value) * math.pi / 2,
             child: child!,
