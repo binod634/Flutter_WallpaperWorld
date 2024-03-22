@@ -3,11 +3,9 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:async_wallpaper/async_wallpaper.dart';
-import 'package:flutter/services.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'package:wallpaperworld/expandablefab.dart';
 import 'package:wallpaperworld/firstimeshow.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -71,8 +69,6 @@ class SecondFullCheck extends State<AppState> {
   bool showNetworkIssue = false;
   int got = Random().nextInt(1000).toInt();
   bool isIteminListRemvoed = false;
-  int? setLockOnType;
-  bool showFloatingActionButton = true;
 
   Future<void> addNewImage(str) async {
     if (!listImage.contains(Uri.parse(str))) {
@@ -102,13 +98,6 @@ class SecondFullCheck extends State<AppState> {
     });
   }
 
-  void setLockType(int? lockType) {
-    setState(() {
-      setLockOnType = lockType;
-      showFloatingActionButton = false; // hide floating action button
-    });
-  }
-
   Future<void> checkInternetIssueAfterDelay() async {
     try {
       http.Response gotResponse = await http.get(Uri.parse(pingUrl));
@@ -125,20 +114,22 @@ class SecondFullCheck extends State<AppState> {
     if (!wallpaperWaiting) {
       try {
         setState(() {
-          setLockOnType = null;
           wallpaperWaiting = true;
-          showFloatingActionButton = true; // enable floating action button.
         });
         // Saved with this method.
-        await AsyncWallpaper.setWallpaper(
-            url: listImage.first.toString(), // last image
-            wallpaperLocation: AsyncWallpaper.HOME_SCREEN,
-            goToHome: false);
+        await AsyncWallpaper.setWallpaperNative(
+          goToHome: true,
+          url: listImage.first.toString(),
+        );
+        // await AsyncWallpaper.setWallpaper(
+        //     url: listImage.first.toString(), // last image
+        //     wallpaperLocation: AsyncWallpaper.HOME_SCREEN,
+        //     goToHome: false);
         setState(() {
           wallpaperWaiting = false;
         });
-      } on PlatformException {
-        return;
+      } catch (e) {
+        dev.log("Error: $e");
       }
     }
   }
@@ -210,90 +201,20 @@ class SecondFullCheck extends State<AppState> {
                     }),
                   ),
                 ),
-
-              // Alert dialog to confirm
-              Visibility(
-                visible: setLockOnType != null,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 04, vertical: 04),
-                  child: AlertDialog(
-                    title: const Text(
-                      "Set it as wallpaper ?",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
-                    icon: Image.network(listImage.first.toString()),
-                    actions: [
-                      TextButton(
-                        onPressed: () => setWallpaper,
-                        child: const Text("Confirm"),
-                      ),
-                      TextButton(
-                        onPressed: () => setState(() {
-                          setLockOnType = null;
-                          showFloatingActionButton = true;
-                        }),
-                        child: const Text("Cancel"),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Processing widget when setting up wallpaper.
-              Visibility(
-                  visible: wallpaperWaiting,
-                  child: const Center(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Text(
-                        "Setting up wallpaper...",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      )
-                    ],
-                  ))),
             ],
           ),
         ),
-        // floatingActionButton: Visibility(
-        //     visible: !showNetworkIssue,
-        //     child: FloatingActionButton(
-        //       backgroundColor: const Color.fromARGB(64, 255, 255, 255),
-        //       onPressed: () => {
-        //         setState(() {
-        //           setLockType(AsyncWallpaper.HOME_SCREEN);
-        //         })
-        //       },
-        //       child: const Icon(Icons.wallpaper),
-        //     )),
         floatingActionButton: Visibility(
-            visible: showFloatingActionButton,
-            child: ExpandableFabMine(distance: 80, children: [
-              FloatingActionButton(
-                backgroundColor: Colors.white,
-                heroTag: null,
-                onPressed: () => setLockType(AsyncWallpaper.LOCK_SCREEN),
-                child: const Icon(Icons.lock),
-              ),
-              FloatingActionButton(
-                backgroundColor: Colors.white,
-                heroTag: null,
-                onPressed: () => setLockType(AsyncWallpaper.HOME_SCREEN),
-                child: const Icon(Icons.home),
-              ),
-              const FloatingActionButton(
-                backgroundColor: Colors.white,
-                heroTag: null,
-                onPressed: null,
-                child: Icon(Icons.download),
-              ),
-            ])),
+            visible: !showNetworkIssue,
+            child: FloatingActionButton(
+              backgroundColor: const Color.fromARGB(64, 255, 255, 255),
+              onPressed: () => {
+                setState(() {
+                  setWallpaper();
+                })
+              },
+              child: const Icon(Icons.wallpaper),
+            )),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat);
   }
 
