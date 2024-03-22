@@ -118,9 +118,9 @@ class SecondFullCheck extends State<AppState> {
         });
         // Saved with this method.
         await AsyncWallpaper.setWallpaperNative(
-            goToHome: true,
-            url: listImage.first.toString(),
-            toastDetails: ToastDetails(message: "Wallpaper Set."));
+          goToHome: true,
+          url: listImage.first.toString(),
+        );
         // await AsyncWallpaper.setWallpaper(
         //     url: listImage.first.toString(), // last image
         //     wallpaperLocation: AsyncWallpaper.HOME_SCREEN,
