@@ -6,6 +6,7 @@ import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:wallpaperworld/firstimeshow.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 /* Don't or Force show that shit working introduction screen */
 bool ignoreIntroScreen = false;
@@ -187,6 +188,14 @@ class SecondFullCheck extends State<AppState> {
         setState(() {
           wallpaperWaiting = false;
         });
+        Fluttertoast.showToast(
+            msg: "Wallpaper set successfully.",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.transparent,
+            textColor: Colors.blue,
+            fontSize: 24.0);
       } catch (e) {
         if (kDebugMode) {
           print("Error: $e");
