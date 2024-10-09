@@ -37,17 +37,17 @@ class FirstTimeStateImpl extends State<FirstTimeState> {
         ),
         body:
             "This introduction page is designed to help you effectively use this application. Hope it helps.",
-        decoration: PageDecoration(pageColor: Colors.lightBlue[100])),
+        decoration: const PageDecoration(pageColor: Colors.white)),
     PageViewModel(
         title: "How To navigate between Wallpapers ?",
         image: Image.asset(
-          'assets/flutter_02.png',
+          'assets/flutter_04.png',
           width: double.infinity,
           height: 250,
         ),
         body:
             "You can swipe Left or Right to get new Wallpaper. Swiping from either side does the same. so, feel free to use as you like.",
-        decoration: PageDecoration(pageColor: Colors.lightBlue[100])),
+        decoration: const PageDecoration(pageColor: Colors.white)),
     PageViewModel(
         title: "How to setup wallpaper",
         image: Image.asset(
@@ -55,7 +55,7 @@ class FirstTimeStateImpl extends State<FirstTimeState> {
           height: 200,
         ),
         body: "Click on bottom icon to get a setup wizard and click confirm.",
-        decoration: PageDecoration(pageColor: Colors.lightBlue[100])),
+        decoration: const PageDecoration(pageColor: Colors.white)),
   ];
   @override
   Widget build(BuildContext context) {
@@ -64,7 +64,7 @@ class FirstTimeStateImpl extends State<FirstTimeState> {
       dotsDecorator: DotsDecorator(
         size: const Size.square(10.0),
         activeSize: const Size(30.0, 10.0),
-        activeColor: Colors.cyanAccent[600],
+        activeColor: Colors.white,
         color: Colors.black26,
         spacing: const EdgeInsets.symmetric(horizontal: 3.0),
         activeShape:
@@ -75,7 +75,7 @@ class FirstTimeStateImpl extends State<FirstTimeState> {
       showNextButton: true,
       next: const Text("Next"),
       done: const Icon(Icons.check),
-      globalBackgroundColor: Colors.lightBlue[100],
+      globalBackgroundColor: Colors.white,
       curve: Curves.elasticInOut,
       onDone: () {
         Navigator.push(

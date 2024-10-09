@@ -1,13 +1,11 @@
-import 'dart:developer' as dev;
-import 'dart:io';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:async_wallpaper/async_wallpaper.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:wallpaperworld/firstimeshow.dart';
-import 'package:path_provider/path_provider.dart';
 
 /* Don't or Force show that shit working introduction screen */
 bool ignoreIntroScreen = false;
@@ -62,6 +60,7 @@ class AppState extends StatefulWidget {
 class SecondFullCheck extends State<AppState> {
   final int bufferSize = 10;
   bool showConfirmDialog = false;
+  bool confirmation = false;
   bool wallpaperWaiting = false;
   List<Uri> listImage = List.empty(growable: true);
   final imageUrl1 = "https://picsum.photos/seed/";
@@ -71,11 +70,11 @@ class SecondFullCheck extends State<AppState> {
   bool isIteminListRemvoed = false;
 
   Future<void> addNewImage(str) async {
-    if (!listImage.contains(Uri.parse(str))) {
-      dev.log("Critic-0: Str to replace isn't in listimage.");
-      dev.log("Str: $str");
-      dev.log("listimage: $listImage");
-      dev.log("got: $got");
+    if (kDebugMode && !listImage.contains(Uri.parse(str))) {
+      print("Critic-0: Str to replace isn't in listimage.");
+      print("Str: $str");
+      print("listimage: $listImage");
+      print("got: $got");
     }
     addToImageList();
     listImage.removeWhere((element) => element.toString() == str);
@@ -101,7 +100,9 @@ class SecondFullCheck extends State<AppState> {
   Future<void> checkInternetIssueAfterDelay() async {
     try {
       http.Response gotResponse = await http.get(Uri.parse(pingUrl));
-      dev.log("Log Got response code: ${gotResponse.statusCode}");
+      if (kDebugMode) {
+        print("Log Got response code: ${gotResponse.statusCode}");
+      }
       if (gotResponse.statusCode != 200) {
         setNetworkIssue();
       }
@@ -111,44 +112,107 @@ class SecondFullCheck extends State<AppState> {
   }
 
   void setWallpaper() async {
-    if (!wallpaperWaiting) {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white, // White background for the dialog
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20), // Rounded corners
+          side: const BorderSide(color: Colors.blue, width: 2), // Blue border
+        ),
+        title: const Text(
+          "Are you sure",
+          textAlign: TextAlign.center, // Centered text
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.blue, // Blue text for title
+            fontSize: 20, // Slightly larger font
+          ),
+        ),
+        content: const Icon(
+          Icons.question_mark,
+          color: Colors.blue, // Blue icon color
+          size: 40,
+        ),
+        actionsAlignment: MainAxisAlignment.center, // Center-align buttons
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white, // White text for button
+              backgroundColor: Colors.blue, // Blue background for button
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+            child: const Text("No"),
+            onPressed: () {
+              confirmation = false;
+              Navigator.of(context).pop(); // Close dialog on 'No'
+            },
+          ),
+          const SizedBox(width: 10), // Space between buttons
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white, // White text for button
+              backgroundColor: Colors.blue, // Blue background for button
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+            child: const Text("Yes"),
+            onPressed: () {
+              confirmation = true;
+              Navigator.of(context).pop(); // Close dialog on 'Yes'
+            },
+          ),
+        ],
+      ),
+    );
+
+    // set wallpaper if necessary
+    if (!wallpaperWaiting && confirmation) {
       try {
         setState(() {
           wallpaperWaiting = true;
         });
+
         // Saved with this method.
         await AsyncWallpaper.setWallpaperNative(
           goToHome: true,
           url: listImage.first.toString(),
         );
-        // await AsyncWallpaper.setWallpaper(
-        //     url: listImage.first.toString(), // last image
-        //     wallpaperLocation: AsyncWallpaper.HOME_SCREEN,
-        //     goToHome: false);
+
         setState(() {
           wallpaperWaiting = false;
         });
       } catch (e) {
-        dev.log("Error: $e");
+        if (kDebugMode) {
+          print("Error: $e");
+        }
+        setState(() {
+          wallpaperWaiting = false;
+        });
       }
     }
   }
 
-  void downloadImage() async {
-    try {
-      final imageUrl = listImage.first;
-      final http.Response response = await http.get(imageUrl);
-      var directory = await getDownloadsDirectory();
-      directory ??= await getTemporaryDirectory();
-      final filename = "${directory.path}/${Random().nextInt(1000)}.png";
-      final file = File(filename);
-      await file.writeAsBytes(response.bodyBytes);
-      dev.log("success: $directory");
-    } catch (e) {
-      dev.log("Error:   $e");
-      return;
-    }
-  }
+  // void downloadImage() async {
+  //   try {
+  //     final imageUrl = listImage.first;
+  //     final http.Response response = await http.get(imageUrl);
+  //     var directory = await getDownloadsDirectory();
+  //     directory ??= await getTemporaryDirectory();
+  //     final filename = "${directory.path}/${Random().nextInt(1000)}.png";
+  //     final file = File(filename);
+  //     await file.writeAsBytes(response.bodyBytes);
+  //     print("success: $directory");
+  //   } catch (e) {
+  //     print("Error:   $e");
+  //     return;
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +233,7 @@ class SecondFullCheck extends State<AppState> {
                                 .signal_wifi_statusbar_connected_no_internet_4_sharp,
                             size: 50,
                           )
-                        : const CircularProgressIndicator(),
+                        : loading(),
                   ),
                   const SizedBox(
                     height: 25,
@@ -201,19 +265,25 @@ class SecondFullCheck extends State<AppState> {
                     }),
                   ),
                 ),
+              Visibility(
+                  visible: wallpaperWaiting,
+                  child: Center(child: showLoadingDialog())),
             ],
           ),
         ),
         floatingActionButton: Visibility(
             visible: !showNetworkIssue,
             child: FloatingActionButton(
-              backgroundColor: const Color.fromARGB(64, 255, 255, 255),
+              backgroundColor: const Color.fromARGB(128, 255, 255, 255),
               onPressed: () => {
                 setState(() {
                   setWallpaper();
                 })
               },
-              child: const Icon(Icons.wallpaper),
+              child: Icon(
+                Icons.wallpaper,
+                color: Colors.blue[900],
+              ),
             )),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat);
   }
@@ -232,4 +302,51 @@ Image wallimage(String imageUrl) {
 
 String findImageUri(imageist, iteration) {
   return imageist.elementAt(iteration).toString();
+}
+
+Widget loading() {
+  return CircularProgressIndicator(
+    strokeWidth: 6,
+    color: Colors.blue[900],
+  );
+}
+
+Container showLoadingDialog() {
+  return Container(
+    width: 300, // Set a fixed width for the container
+    padding: const EdgeInsets.all(20), // Add padding
+    decoration: BoxDecoration(
+      color: Colors.white, // White background for the container
+      borderRadius: BorderRadius.circular(20), // Rounded corners
+      border: Border.all(color: Colors.blue, width: 2), // Blue border
+    ),
+    child: const Column(
+      mainAxisSize: MainAxisSize.min, // Adjust size to content
+      children: [
+        Text(
+          "Setting up Wallpaper...",
+          textAlign: TextAlign.center, // Centered text
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.blue, // Blue text for title
+            fontSize: 20, // Slightly larger font
+          ),
+        ),
+        SizedBox(height: 20), // Space between title and loading indicator
+        CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(
+              Colors.blue), // Blue loading indicator
+        ),
+        SizedBox(height: 20), // Space between loading indicator and text
+        Text(
+          "Please wait while we set your wallpaper.",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 16,
+          ),
+        ),
+      ],
+    ),
+  );
 }
