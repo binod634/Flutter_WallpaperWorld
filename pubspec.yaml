@@ -1,7 +1,7 @@
 name: wallpaperworld
 description: "A new Flutter project."
 publish_to: 'none'
-version: 0.1.0
+version: 0.0.1+1
 
 environment:
   sdk: '>=3.2.6 <4.0.0'
@@ -15,6 +15,7 @@ dependencies:
   flutter_expandable_fab: ^2.0.0
   fluttertoast: ^8.2.8
   http: ^1.2.0
+  icons_launcher: ^3.0.0
   introduction_screen: ^3.1.12
   path_provider: ^2.1.2
   shared_preferences: ^2.2.2
@@ -29,3 +30,13 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - shorebird.yaml
+
+
+icons_launcher:
+  image_path: "assets/elephant_transparent.png"
+  platforms:
+    android:
+      enable: true
+    ios:
+      enable: true
